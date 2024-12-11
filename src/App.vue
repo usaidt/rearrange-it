@@ -1,27 +1,56 @@
-<script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
-</script>
-
 <template>
-  <div>
-    <a href="https://rearrange-it.vercel.app" target="_blank">
-      <img src="/logo.svg" class="logo" alt="Home logo" />
-    </a>
+  <div id="app">
+    <InfiniteCanvas />
+    <div id="furniture-bucket">
+      <h2>Furniture Bucket</h2>
+      <div class="bucket-items">
+        <DraggableSofa @add-to-canvas="addToCanvas" />
+        <!-- Add more furniture components here -->
+      </div>
+    </div>
   </div>
-  <HelloWorld msg="Rearrange it!" />
 </template>
 
-<style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+<script lang="ts">
+import { defineComponent, ref } from 'vue';
+import InfiniteCanvas from './components/InfiniteCanvas.vue';
+import DraggableSofa from './components/DraggableSofa.vue';
+
+export default defineComponent({
+  name: 'App',
+  components: { InfiniteCanvas, DraggableSofa },
+  setup() {
+    const canvasItems = ref<Array<{ type: string, position: { x: number, y: number } }>>([]);
+
+    const addToCanvas = (type: string, position: { x: number, y: number }) => {
+      canvasItems.value.push({ type, position });
+    };
+
+    return { addToCanvas };
+  }
+});
+</script>
+
+<style>
+#app {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
 }
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+
+#furniture-bucket {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 10px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
+
+.bucket-items {
+  display: flex;
+  gap: 10px;
 }
 </style>
+
