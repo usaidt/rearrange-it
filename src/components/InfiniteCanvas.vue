@@ -18,16 +18,16 @@ const state = reactive({
   lastY: 0
 });
 
-const toVirtualX = (xReal: number): number => (xReal + state.offsetX) * state.scale;
-const toVirtualY = (yReal: number): number => (yReal + state.offsetY) * state.scale;
-const toRealX = (xVirtual: number): number => xVirtual / state.scale - state.offsetX;
-const toRealY = (yVirtual: number): number => yVirtual / state.scale - state.offsetY;
+// const toVirtualX = (xReal: number): number => (xReal + state.offsetX) * state.scale;
+// const toVirtualY = (yReal: number): number => (yReal + state.offsetY) * state.scale;
+// const toRealX = (xVirtual: number): number => xVirtual / state.scale - state.offsetX;
+// const toRealY = (yVirtual: number): number => yVirtual / state.scale - state.offsetY;
 
 const virtualHeight = (): number => (canvasRef.value?.clientHeight ?? 0) / state.scale;
 const virtualWidth = (): number => (canvasRef.value?.clientWidth ?? 0) / state.scale;
 
 const zoom = (amount: number, centerX: number, centerY: number): void => {
-  const oldScale = state.scale;
+  // const oldScale = state.scale;
   state.scale *= amount;
   
   const zoomRatioX = centerX / (canvasRef.value?.clientWidth ?? 1);
