@@ -1,2 +1,3 @@
-# rearrange-it
-home rearranging website in vue typescript
+# Rearrange it
+
+One stop home rearrangement website
