@@ -15,19 +15,15 @@ const state = reactive({
   offsetY: 0,
   isDragging: false,
   lastX: 0,
-  lastY: 0
+  lastY: 0,
+  touchMode: "single" as "single" | "double",
+  prevTouch: [null as Touch | null, null as Touch | null],
 });
-
-// const toVirtualX = (xReal: number): number => (xReal + state.offsetX) * state.scale;
-// const toVirtualY = (yReal: number): number => (yReal + state.offsetY) * state.scale;
-// const toRealX = (xVirtual: number): number => xVirtual / state.scale - state.offsetX;
-// const toRealY = (yVirtual: number): number => yVirtual / state.scale - state.offsetY;
 
 const virtualHeight = (): number => (canvasRef.value?.clientHeight ?? 0) / state.scale;
 const virtualWidth = (): number => (canvasRef.value?.clientWidth ?? 0) / state.scale;
 
 const zoom = (amount: number, centerX: number, centerY: number): void => {
-  // const oldScale = state.scale;
   state.scale *= amount;
   
   const zoomRatioX = centerX / (canvasRef.value?.clientWidth ?? 1);
@@ -114,17 +110,62 @@ const onWheel = (event: WheelEvent): void => {
   zoom(zoomFactor, event.clientX, event.clientY);
 };
 
+const onTouchStart = (event: TouchEvent): void => {
+  const touches = event.touches;
+  if (touches.length === 1) {
+    state.touchMode = "single";
+  } else if (touches.length >= 2) {
+    state.touchMode = "double";
+  }
+  state.prevTouch[0] = touches[0];
+  state.prevTouch[1] = touches[1];
+};
+
+const onTouchMove = (event: TouchEvent): void => {
+  const touches = event.touches;
+  if (state.touchMode === "single" && touches.length === 1) {
+    const deltaX = touches[0].pageX - (state.prevTouch[0]?.pageX ?? touches[0].pageX);
+    const deltaY = touches[0].pageY - (state.prevTouch[0]?.pageY ?? touches[0].pageY);
+    state.offsetX += deltaX / state.scale;
+    state.offsetY += deltaY / state.scale;
+    draw();
+  } else if (state.touchMode === "double" && touches.length === 2) {
+    const touch0 = touches[0];
+    const touch1 = touches[1];
+    const prevTouch0 = state.prevTouch[0]!;
+    const prevTouch1 = state.prevTouch[1]!;
+
+    const currentDist = Math.hypot(touch0.pageX - touch1.pageX, touch0.pageY - touch1.pageY);
+    const prevDist = Math.hypot(prevTouch0.pageX - prevTouch1.pageX, prevTouch0.pageY - prevTouch1.pageY);
+
+    const zoomFactor = currentDist / prevDist;
+    const midX = (touch0.pageX + touch1.pageX) / 2;
+    const midY = (touch0.pageY + touch1.pageY) / 2;
+
+    zoom(zoomFactor, midX, midY);
+
+    const panX = (touch0.pageX + touch1.pageX - prevTouch0.pageX - prevTouch1.pageX) / 2;
+    const panY = (touch0.pageY + touch1.pageY - prevTouch0.pageY - prevTouch1.pageY) / 2;
+
+    state.offsetX += panX / state.scale;
+    state.offsetY += panY / state.scale;
+  }
+  state.prevTouch[0] = touches[0];
+  state.prevTouch[1] = touches[1];
+};
+
 onMounted(() => {
   if (canvasRef.value) {
-    context.value = canvasRef.value.getContext('2d');
-    
+    context.value = canvasRef.value.getContext("2d");
+
     canvasRef.value.addEventListener("mousedown", onMouseDown);
     document.addEventListener("mousemove", onMouseMove);
     document.addEventListener("mouseup", onMouseUp);
     canvasRef.value.addEventListener("wheel", onWheel);
+    canvasRef.value.addEventListener("touchstart", onTouchStart);
+    canvasRef.value.addEventListener("touchmove", onTouchMove);
 
     window.addEventListener("resize", () => draw());
-
     draw();
   }
 });
@@ -139,4 +180,3 @@ canvas {
   left: 0;
 }
 </style>
-
